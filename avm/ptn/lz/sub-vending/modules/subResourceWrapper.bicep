@@ -123,6 +123,14 @@ param deploymentScriptName string
 @sys.description('The name of the private virtual network for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
 param deploymentScriptVirtualNetworkName string = ''
 
+@maxLength(64)
+@sys.description('The name of the subnet with private endpoint for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetPrivateEndpointName string = 'ds-pe-subnet'
+
+@maxLength(64)
+@sys.description('The name of the subnet with private endpoint for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetName string = 'ds-subnet'
+
 @sys.description('The name of the network security group for the deployment script private subnet.')
 param deploymentScriptNetworkSecurityGroupName string = ''
 
@@ -204,6 +212,9 @@ param deploymentScriptManagedIdentityName string
 
 @sys.description('The name of the storage account for the deployment script.')
 param deploymentScriptStorageAccountName string
+
+@sys.description('The allowed copy scope property for the storage account used for the deployment script.')
+param deploymentScriptStorageAccountAllowedCopyScope string = ''
 
 @sys.description('Optional. The number of blank ARM deployments to create sequentially to introduce a delay to the Subscription being moved to the target Management Group being, if set, to allow for background platform RBAC inheritance to occur.')
 param managementGroupAssociationDelayCount int = 15
@@ -1115,12 +1126,13 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.15.0'
     skuName: 'Standard_LRS'
     publicNetworkAccess: 'Disabled'
     allowSharedKeyAccess: true
+    allowedCopyScope: deploymentScriptStorageAccountAllowedCopyScope
     privateEndpoints: [
       {
         service: 'file'
         subnetResourceId: filter(
           createDsVnet.outputs.subnetResourceIds,
-          subnetResourceId => contains(subnetResourceId, 'ds-pe-subnet')
+          subnetResourceId => contains(subnetResourceId, deploymentScriptSubnetPrivateEndpointName)
         )[0]
         privateDnsZoneGroup: {
           privateDnsZoneGroupConfigs: [
@@ -1155,12 +1167,12 @@ module createDsVnet 'br/public:avm/res/network/virtual-network:0.5.1' = if (!emp
             addressPrefix: !empty(resourceProviders)
               ? cidrSubnet(virtualNetworkDeploymentScriptAddressPrefix, 25, 0)
               : null
-            name: 'ds-subnet'
+            name: deploymentScriptSubnetName
             networkSecurityGroupResourceId: !empty(resourceProviders) ? createDsNsg.outputs.resourceId : null
             delegation: 'Microsoft.ContainerInstance/containerGroups'
           }
           {
-            name: 'ds-pe-subnet'
+            name: deploymentScriptSubnetPrivateEndpointName
             addressPrefix: !empty(resourceProviders)
               ? cidrSubnet(virtualNetworkDeploymentScriptAddressPrefix, 25, 1)
               : null
@@ -1193,7 +1205,12 @@ module registerResourceProviders 'br/public:avm/res/resources/deployment-script:
       : null
     storageAccountResourceId: !(empty(resourceProviders)) ? createDsStorageAccount.outputs.resourceId : null
     subnetResourceIds: !(empty(resourceProviders))
-      ? [filter(createDsVnet.outputs.subnetResourceIds, subnetResourceId => contains(subnetResourceId, 'ds-subnet'))[0]]
+      ? [
+          filter(
+            createDsVnet.outputs.subnetResourceIds,
+            subnetResourceId => contains(subnetResourceId, deploymentScriptSubnetName)
+          )[0]
+        ]
       : null
     arguments: '-resourceProviders \'${resourceProvidersFormatted}\' -resourceProvidersFeatures -subscriptionId ${subscriptionId}'
     scriptContent: loadTextContent('../scripts/Register-SubscriptionResourceProviderList.ps1')

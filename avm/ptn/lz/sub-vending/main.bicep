@@ -285,6 +285,14 @@ param deploymentScriptManagedIdentityName string = 'id-${deployment().location}'
 @description('Optional. The name of the private virtual network for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
 param deploymentScriptVirtualNetworkName string = 'vnet-ds-${deployment().location}'
 
+@maxLength(64)
+@description('Optional. The name of the private subnet with private endpoint for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetPrivateEndpointName string = 'snet-ds-pe-${deployment().location}'
+
+@maxLength(64)
+@description('Optional. The name of the private subnet for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetName string = 'snet-ds-${deployment().location}'
+
 @description('Optional. The name of the network security group for the deployment script private subnet.')
 param deploymentScriptNetworkSecurityGroupName string = 'nsg-ds-${deployment().location}'
 
@@ -293,6 +301,9 @@ param virtualNetworkDeploymentScriptAddressPrefix string = '192.168.0.0/24'
 
 @description('Optional. The name of the storage account for the deployment script.')
 param deploymentScriptStorageAccountName string = 'stgds${substring(uniqueString(deployment().name,existingSubscriptionId,subscriptionAliasName,subscriptionDisplayName, virtualNetworkLocation), 0, 10)}'
+
+@description('Optional. The allowed copy scope of the storage account for the deployment script.')
+param deploymentScriptStorageAccountAllowedCopyScope string = ''
 
 @description('Optional. The location of the deployment script. Use region shortnames e.g. uksouth, eastus, etc.')
 param deploymentScriptLocation string = deployment().location
@@ -459,10 +470,13 @@ module createSubscriptionResources './modules/subResourceWrapper.bicep' = if (su
     deploymentScriptManagedIdentityName: deploymentScriptManagedIdentityName
     resourceProviders: resourceProviders
     deploymentScriptVirtualNetworkName: deploymentScriptVirtualNetworkName
+    deploymentScriptSubnetPrivateEndpointName: deploymentScriptSubnetPrivateEndpointName
+    deploymentScriptSubnetName: deploymentScriptSubnetName
     deploymentScriptLocation: deploymentScriptLocation
     deploymentScriptNetworkSecurityGroupName: deploymentScriptNetworkSecurityGroupName
     virtualNetworkDeploymentScriptAddressPrefix: virtualNetworkDeploymentScriptAddressPrefix
     deploymentScriptStorageAccountName: deploymentScriptStorageAccountName
+    deploymentScriptStorageAccountAllowedCopyScope: deploymentScriptStorageAccountAllowedCopyScope
     virtualNetworkDeployNatGateway: virtualNetworkDeployNatGateway
     virtualNetworkNatGatewayConfiguration: virtualNetworkNatGatewayConfiguration
     virtualNetworkBastionConfiguration: virtualNetworkBastionConfiguration
