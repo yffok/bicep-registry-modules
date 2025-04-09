@@ -305,6 +305,12 @@ param deploymentScriptStorageAccountName string = 'stgds${substring(uniqueString
 @description('Optional. The allowed copy scope of the storage account for the deployment script.')
 param deploymentScriptStorageAccountAllowedCopyScope string = ''
 
+@sys.description('Optional. The custom nic name created for the deployment script storage account private endpoint')
+param deploymentScriptPrivateEndpointNicCustomName string = 'nic-pe-ds-file'
+
+@sys.description('Optional. The name for the deployment script private endpoint')
+param deploymentScriptPrivateEndpointName string = 'pe-ds-file'
+
 @description('Optional. The location of the deployment script. Use region shortnames e.g. uksouth, eastus, etc.')
 param deploymentScriptLocation string = deployment().location
 
@@ -477,6 +483,8 @@ module createSubscriptionResources './modules/subResourceWrapper.bicep' = if (su
     virtualNetworkDeploymentScriptAddressPrefix: virtualNetworkDeploymentScriptAddressPrefix
     deploymentScriptStorageAccountName: deploymentScriptStorageAccountName
     deploymentScriptStorageAccountAllowedCopyScope: deploymentScriptStorageAccountAllowedCopyScope
+    deploymentScriptPrivateEndpointNicCustomName: deploymentScriptPrivateEndpointNicCustomName
+    deploymentScriptPrivateEndpointName: deploymentScriptPrivateEndpointName
     virtualNetworkDeployNatGateway: virtualNetworkDeployNatGateway
     virtualNetworkNatGatewayConfiguration: virtualNetworkNatGatewayConfiguration
     virtualNetworkBastionConfiguration: virtualNetworkBastionConfiguration

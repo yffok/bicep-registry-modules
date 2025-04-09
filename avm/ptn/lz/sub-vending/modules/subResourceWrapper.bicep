@@ -216,6 +216,12 @@ param deploymentScriptStorageAccountName string
 @sys.description('The allowed copy scope property for the storage account used for the deployment script.')
 param deploymentScriptStorageAccountAllowedCopyScope string = ''
 
+@sys.description('The custom nic name created for the deployment script storage account private endpoint')
+param deploymentScriptPrivateEndpointNicCustomName string = 'nic-pe-ds-file'
+
+@sys.description('The name for the deployment script private endpoint')
+param deploymentScriptPrivateEndpointName string = 'pe-ds-file'
+
 @sys.description('Optional. The number of blank ARM deployments to create sequentially to introduce a delay to the Subscription being moved to the target Management Group being, if set, to allow for background platform RBAC inheritance to occur.')
 param managementGroupAssociationDelayCount int = 15
 
@@ -1141,7 +1147,8 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.15.0'
             }
           ]
         }
-        name: 'ds-file-pe'
+        name: deploymentScriptPrivateEndpointName
+        customNetworkInterfaceName: deploymentScriptPrivateEndpointNicCustomName
       }
     ]
     networkAcls: {
