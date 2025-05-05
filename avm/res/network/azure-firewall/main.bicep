@@ -18,6 +18,9 @@ param virtualNetworkResourceId string = ''
 @description('Optional. The Public IP resource ID to associate to the AzureFirewallSubnet. If empty, then the Public IP that is created as part of this module will be applied to the AzureFirewallSubnet.')
 param publicIPResourceID string = ''
 
+@description('Optional. This is to add any additional properties used to further configure the azure firewall.')
+param additionalProperties object = {}
+
 @description('Optional. This is to add any additional Public IP configurations on top of the Public IP with subnet IP configuration.')
 param additionalPublicIpConfigurations array = []
 
@@ -270,6 +273,7 @@ resource azureFirewall 'Microsoft.Network/azureFirewalls@2024-05-01' = {
   tags: tags
   properties: azureSkuName == 'AZFW_VNet'
     ? {
+        additionalProperties: additionalProperties
         threatIntelMode: threatIntelMode
         firewallPolicy: !empty(firewallPolicyId)
           ? {
@@ -287,6 +291,7 @@ resource azureFirewall 'Microsoft.Network/azureFirewalls@2024-05-01' = {
         networkRuleCollections: networkRuleCollections ?? []
       }
     : {
+        additionalProperties: additionalProperties
         firewallPolicy: !empty(firewallPolicyId)
           ? {
               id: firewallPolicyId

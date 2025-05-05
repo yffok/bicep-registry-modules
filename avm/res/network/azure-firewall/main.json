@@ -761,6 +761,13 @@
         "description": "Optional. The Public IP resource ID to associate to the AzureFirewallSubnet. If empty, then the Public IP that is created as part of this module will be applied to the AzureFirewallSubnet."
       }
     },
+    "additionalProperties": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Optional. Additional properties for the Azure Firewall."
+      }
+    },
     "additionalPublicIpConfigurations": {
       "type": "array",
       "defaultValue": [],
