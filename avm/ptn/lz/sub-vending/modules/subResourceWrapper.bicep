@@ -1524,6 +1524,7 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.26.2'
       bypass: 'AzureServices'
       defaultAction: 'Deny'
     }
+    keyType: 'Account'
     enableTelemetry: enableTelemetry
   }
 }
