@@ -135,6 +135,14 @@ param deploymentScriptName string
 @sys.description('The name of the private virtual network for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
 param deploymentScriptVirtualNetworkName string = ''
 
+@maxLength(64)
+@sys.description('The name of the subnet with private endpoint for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetPrivateEndpointName string = 'ds-pe-subnet'
+
+@maxLength(64)
+@sys.description('The name of the subnet with private endpoint for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetName string = 'ds-subnet'
+
 @sys.description('The name of the network security group for the deployment script private subnet.')
 param deploymentScriptNetworkSecurityGroupName string = ''
 
@@ -214,6 +222,15 @@ param deploymentScriptManagedIdentityName string
 
 @sys.description('The name of the storage account for the deployment script.')
 param deploymentScriptStorageAccountName string
+
+@sys.description('The allowed copy scope property for the storage account used for the deployment script.')
+param deploymentScriptStorageAccountAllowedCopyScope string = ''
+
+@sys.description('The custom nic name created for the deployment script storage account private endpoint')
+param deploymentScriptPrivateEndpointNicCustomName string = 'nic-pe-ds-file'
+
+@sys.description('The name for the deployment script private endpoint')
+param deploymentScriptPrivateEndpointName string = 'pe-ds-file'
 
 @sys.description('Optional. The number of blank ARM deployments to create sequentially to introduce a delay to the Subscription being moved to the target Management Group being, if set, to allow for background platform RBAC inheritance to occur.')
 param managementGroupAssociationDelayCount int = 15
@@ -1467,12 +1484,13 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.26.2'
     skuName: 'Standard_LRS'
     publicNetworkAccess: 'Disabled'
     allowSharedKeyAccess: true
+    allowedCopyScope: deploymentScriptStorageAccountAllowedCopyScope
     privateEndpoints: [
       {
         service: 'file'
         subnetResourceId: filter(
           createDsVnet.?outputs.subnetResourceIds ?? [],
-          subnetResourceId => contains(subnetResourceId, 'ds-pe-subnet')
+          subnetResourceId => contains(subnetResourceId, deploymentScriptSubnetPrivateEndpointName)
         )[0]
         privateDnsZoneGroup: {
           privateDnsZoneGroupConfigs: [
@@ -1481,7 +1499,8 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.26.2'
             }
           ]
         }
-        name: 'ds-file-pe'
+        name: deploymentScriptPrivateEndpointName
+        customNetworkInterfaceName: deploymentScriptPrivateEndpointNicCustomName
       }
     ]
     networkAcls: {
@@ -1507,12 +1526,12 @@ module createDsVnet 'br/public:avm/res/network/virtual-network:0.7.2' = if (!emp
             addressPrefix: !empty(resourceProviders)
               ? cidrSubnet(virtualNetworkDeploymentScriptAddressPrefix, 25, 0)
               : null
-            name: 'ds-subnet'
+            name: deploymentScriptSubnetName
             networkSecurityGroupResourceId: !empty(resourceProviders) ? createDsNsg.?outputs.resourceId : null
             delegation: 'Microsoft.ContainerInstance/containerGroups'
           }
           {
-            name: 'ds-pe-subnet'
+            name: deploymentScriptSubnetPrivateEndpointName
             addressPrefix: !empty(resourceProviders)
               ? cidrSubnet(virtualNetworkDeploymentScriptAddressPrefix, 25, 1)
               : null
@@ -1548,7 +1567,7 @@ module registerResourceProviders 'br/public:avm/res/resources/deployment-script:
       ? [
           filter(
             createDsVnet.?outputs.subnetResourceIds ?? [],
-            subnetResourceId => contains(subnetResourceId, 'ds-subnet')
+            subnetResourceId => contains(subnetResourceId, deploymentScriptSubnetName)
           )[0]
         ]
       : null
