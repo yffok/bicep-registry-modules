@@ -301,6 +301,14 @@ param deploymentScriptManagedIdentityName string = 'id-${deployment().location}'
 @description('Optional. The name of the private virtual network for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
 param deploymentScriptVirtualNetworkName string = 'vnet-ds-${deployment().location}'
 
+@maxLength(64)
+@description('Optional. The name of the private subnet with private endpoint for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetPrivateEndpointName string = 'snet-ds-pe-${deployment().location}'
+
+@maxLength(64)
+@description('Optional. The name of the private subnet for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
+param deploymentScriptSubnetName string = 'snet-ds-${deployment().location}'
+
 @description('Optional. The name of the network security group for the deployment script private subnet.')
 param deploymentScriptNetworkSecurityGroupName string = 'nsg-ds-${deployment().location}'
 
@@ -309,6 +317,15 @@ param virtualNetworkDeploymentScriptAddressPrefix string = '192.168.0.0/24'
 
 @description('Optional. The name of the storage account for the deployment script.')
 param deploymentScriptStorageAccountName string = 'stgds${substring(uniqueString(deployment().name,existingSubscriptionId,subscriptionAliasName,subscriptionDisplayName, virtualNetworkLocation), 0, 10)}'
+
+@description('Optional. The allowed copy scope of the storage account for the deployment script.')
+param deploymentScriptStorageAccountAllowedCopyScope string = ''
+
+@sys.description('Optional. The custom nic name created for the deployment script storage account private endpoint')
+param deploymentScriptPrivateEndpointNicCustomName string = 'nic-pe-ds-file'
+
+@sys.description('Optional. The name for the deployment script private endpoint')
+param deploymentScriptPrivateEndpointName string = 'pe-ds-file'
 
 @description('Optional. The location of the deployment script. Use region shortnames e.g. uksouth, eastus, etc.')
 param deploymentScriptLocation string = deployment().location
@@ -530,6 +547,14 @@ var deploymentScriptLocationNormalized = contains(toLower(deploymentScriptLocati
   ? azureRegionShortNameDisplayNameAsKey[toLower(deploymentScriptLocation)]
   : toLower(deploymentScriptLocation)
 
+var deploymentScriptSubnetNameNormalized = toLower(deploymentScriptSubnetName) == toLower('snet-ds-${deployment().location}')
+  ? 'snet-ds-${locationLoweredAndSpacesRemoved}'
+  : replace(deploymentScriptSubnetName, ' ', '')
+
+var deploymentScriptSubnetPrivateEndpointNameNormalized = toLower(deploymentScriptSubnetPrivateEndpointName) == toLower('snet-ds-pe-${deployment().location}')
+  ? 'snet-ds-pe-${locationLoweredAndSpacesRemoved}'
+  : replace(deploymentScriptSubnetPrivateEndpointName, ' ', '')
+
 #disable-next-line no-deployments-resources
 resource avmTelemetry 'Microsoft.Resources/deployments@2024-03-01' = if (enableTelemetry) {
   name: '46d3xbcp.ptn.lz-subvending.${replace('-..--..-', '.', '-')}.${substring(uniqueString(deployment().name, virtualNetworkLocation), 0, 4)}'
@@ -602,10 +627,15 @@ module createSubscriptionResources './modules/subResourceWrapper.bicep' = if (su
     deploymentScriptManagedIdentityName: deploymentScriptManagedIdentityNameNormalized
     resourceProviders: resourceProviders
     deploymentScriptVirtualNetworkName: deploymentScriptVirtualNetworkNameNormalized
+    deploymentScriptSubnetPrivateEndpointName: deploymentScriptSubnetPrivateEndpointNameNormalized
+    deploymentScriptSubnetName: deploymentScriptSubnetNameNormalized
     deploymentScriptLocation: deploymentScriptLocationNormalized
     deploymentScriptNetworkSecurityGroupName: deploymentScriptNetworkSecurityGroupNameNormalized
     virtualNetworkDeploymentScriptAddressPrefix: virtualNetworkDeploymentScriptAddressPrefix
     deploymentScriptStorageAccountName: deploymentScriptStorageAccountName
+    deploymentScriptStorageAccountAllowedCopyScope: deploymentScriptStorageAccountAllowedCopyScope
+    deploymentScriptPrivateEndpointNicCustomName: deploymentScriptPrivateEndpointNicCustomName
+    deploymentScriptPrivateEndpointName: deploymentScriptPrivateEndpointName
     virtualNetworkDeployNatGateway: virtualNetworkDeployNatGateway
     virtualNetworkNatGatewayConfiguration: virtualNetworkNatGatewayConfiguration
     virtualNetworkBastionConfiguration: virtualNetworkBastionConfiguration
