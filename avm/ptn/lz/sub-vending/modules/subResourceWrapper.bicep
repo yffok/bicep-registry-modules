@@ -1523,6 +1523,7 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.26.2'
     networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Deny'
+      ipRules: []
     }
     keyType: 'Account'
     enableTelemetry: enableTelemetry
