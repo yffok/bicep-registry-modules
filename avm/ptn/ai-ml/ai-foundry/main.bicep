@@ -48,19 +48,6 @@ param storageAccountConfiguration storageAccountConfigurationType?
 @description('Optional. Custom configuration for the Cosmos DB Account.')
 param cosmosDbConfiguration cosmosDbConfigurationType?
 
-param privateEndpointCustomNames object = {
-  accountPepName: null
-  accountPepNetworkInterfaceName: null
-  keyVaultPepName: null
-  keyVaultPepNetworkInterfaceName: null
-  aiSearchPepName: null
-  aiSearchPepNetworkInterfaceName: null
-  storageAccountPepName: null
-  storageAccountPepNetworkInterfaceName: null
-  cosmosDbPepName: null
-  cosmosDbPepNetworkInterfaceName: null
-}
-
 var resourcesName = toLower(trim(replace(
   replace(
     replace(replace(replace(replace('${baseName}${baseUniqueName}', '-', ''), '_', ''), '.', ''), '/', ''),
@@ -118,8 +105,8 @@ module foundryAccount 'modules/account.bicep' = {
     enableTelemetry: enableTelemetry
     lock: lock
     pepCustoms: {
-      pepName: privateEndpointCustomNames.?accountPepName
-      networkInterfaceName: privateEndpointCustomNames.?accountPepNetworkInterfaceName
+      pepName: aiFoundryConfiguration.?networking.privateEndpointCustomNames.?pepName
+      networkInterfaceName: aiFoundryConfiguration.?networking.privateEndpointCustomNames.?networkInterfaceName
     }
   }
 }
@@ -141,8 +128,8 @@ module keyVault 'modules/keyVault.bicep' = if (includeAssociatedResources) {
     privateDnsZoneResourceId: keyVaultConfiguration.?privateDnsZoneResourceId
     roleAssignments: keyVaultConfiguration.?roleAssignments
     pepCustoms: {
-      pepName: privateEndpointCustomNames.?keyVaultPepName
-      networkInterfaceName: privateEndpointCustomNames.?keyVaultNetworkInterfaceName
+      pepName: keyVaultConfiguration.?privateEndpointCustomNames.?pepName
+      networkInterfaceName: keyVaultConfiguration.?privateEndpointCustomNames.?networkInterfaceName
     }
   }
 }
@@ -162,8 +149,8 @@ module aiSearch 'modules/aiSearch.bicep' = if (includeAssociatedResources) {
     replicaCount: aiSearchConfiguration.?replicaCount ?? 3
     partitionCount: aiSearchConfiguration.?partitionCount ?? 1
     pepCustoms: {
-      pepName: privateEndpointCustomNames.?aiSearchPepName
-      networkInterfaceName: privateEndpointCustomNames.?aiSearchNetworkInterfaceName
+      pepName: aiSearchConfiguration.?privateEndpointCustomNames.?pepName
+      networkInterfaceName: aiSearchConfiguration.?privateEndpointCustomNames.?networkInterfaceName
     }
   }
 }
@@ -205,8 +192,8 @@ module storageAccount 'modules/storageAccount.bicep' = if (includeAssociatedReso
         : []
     )
     pepCustoms: {
-      pepName: privateEndpointCustomNames.?aiSearchPepName
-      networkInterfaceName: privateEndpointCustomNames.?aiSearchNetworkInterfaceName
+      pepName: storageAccountConfiguration.?privateEndpointCustomNames.?pepName
+      networkInterfaceName: storageAccountConfiguration.?privateEndpointCustomNames.?networkInterfaceName
     }
   }
 }
@@ -225,8 +212,8 @@ module cosmosDb 'modules/cosmosDb.bicep' = if (includeAssociatedResources) {
     enableZoneRedundancy: cosmosDbConfiguration.?enableZoneRedundancy ?? false
     enableServerless: cosmosDbConfiguration.?enableServerless ?? false
     pepCustoms: {
-      pepName: privateEndpointCustomNames.?cosmosDbPepName
-      networkInterfaceName: privateEndpointCustomNames.?cosmosDbNetworkInterfaceName
+      pepName: cosmosDbConfiguration.?privateEndpointCustomNames.?pepName
+      networkInterfaceName: cosmosDbConfiguration.?privateEndpointCustomNames.?networkInterfaceName
     }
   }
 }
@@ -300,6 +287,8 @@ output cosmosAccountName string = includeAssociatedResources ? cosmosDb!.outputs
 
 import { roleAssignmentType } from 'br/public:avm/utl/types/avm-common-types:0.6.1'
 
+import { privateEndpointCustomNames } from './modules/utl.bicep'
+
 @export()
 @description('Custom configuration for a resource, including optional name, existing resource ID, and role assignments.')
 type resourceConfigurationType = {
@@ -314,6 +303,9 @@ type resourceConfigurationType = {
 
   @description('Optional. Role assignments to apply to the resource when creating it. This is ignored if an existingResourceId is provided.')
   roleAssignments: roleAssignmentType[]?
+
+  @description('Optional. Custom names for the private endpoints and network interfaces associated with the KeyVault resource.')
+  privateEndpointCustomNames: privateEndpointCustomNames?
 }
 
 @export()
@@ -330,6 +322,9 @@ type storageAccountConfigurationType = {
 
   @description('Optional. Role assignments to apply to the resource when creating it. This is ignored if an existingResourceId is provided.')
   roleAssignments: roleAssignmentType[]?
+
+  @description('Optional. Custom names for the private endpoints and network interfaces associated with the Storage Account.')
+  privateEndpointCustomNames: privateEndpointCustomNames?
 }
 
 @export()
@@ -359,6 +354,9 @@ type aiSearchConfigurationType = {
   @minValue(1)
   @maxValue(12)
   partitionCount: int?
+
+  @description('Optional. Custom names for the private endpoints and network interfaces associated with the AI Search resource.')
+  privateEndpointCustomNames: privateEndpointCustomNames?
 }
 
 @export()
@@ -425,6 +423,9 @@ type foundryNetworkConfigurationType = {
 
   @description('Required. The Resource ID of the Private DNS Zone for the Azure AI Services account.')
   aiServicesPrivateDnsZoneResourceId: string
+
+  @description('Optional. Custom names for the private endpoints and network interfaces associated with the AI Foundry account and project.')
+  privateEndpointCustomNames: privateEndpointCustomNames?
 }
 
 @export()
@@ -447,6 +448,9 @@ type cosmosDbConfigurationType = {
 
   @description('Optional. Whether to enable the serverless pricing model for the Cosmos DB account. Defaults to false. Note: Serverless can only be set at account creation time and cannot be changed later. This property is ignored when an existingResourceId is provided.')
   enableServerless: bool?
+
+  @description('Optional. Custom names for the private endpoints and network interfaces associated with the Cosmos DB account.')
+  privateEndpointCustomNames: privateEndpointCustomNames?
 }
 
 @export()
