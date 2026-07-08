@@ -60,6 +60,10 @@ param enableTelemetry bool = true
 @description('Optional. Specifies the resource tags for all the resources.')
 param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
+import { privateEndpointCustomNames } from 'utl.bicep'
+@description('Optional. The custom name of the network interface attached to the private endpoint.')
+param pepCustoms privateEndpointCustomNames = {}
+
 var privateDnsZoneResourceIdValues = [
   for id in privateDnsZoneResourceIds ?? []: {
     privateDnsZoneResourceId: id
@@ -99,6 +103,8 @@ module foundryAccount 'br/public:avm/res/cognitive-services/account:0.14.2' = {
     privateEndpoints: privateNetworkingEnabled
       ? [
           {
+            customNetworkInterfaceName: pepCustoms.?networkInterfaceName
+            name: pepCustoms.?pepName
             privateDnsZoneGroup: {
               privateDnsZoneGroupConfigs: privateDnsZoneResourceIdValues
             }

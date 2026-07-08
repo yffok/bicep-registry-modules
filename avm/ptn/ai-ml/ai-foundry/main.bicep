@@ -48,6 +48,19 @@ param storageAccountConfiguration storageAccountConfigurationType?
 @description('Optional. Custom configuration for the Cosmos DB Account.')
 param cosmosDbConfiguration cosmosDbConfigurationType?
 
+param privateEndpointCustomNames object = {
+  accountPepName: null
+  accountPepNetworkInterfaceName: null
+  keyVaultPepName: null
+  keyVaultPepNetworkInterfaceName: null
+  aiSearchPepName: null
+  aiSearchPepNetworkInterfaceName: null
+  storageAccountPepName: null
+  storageAccountPepNetworkInterfaceName: null
+  cosmosDbPepName: null
+  cosmosDbPepNetworkInterfaceName: null
+}
+
 var resourcesName = toLower(trim(replace(
   replace(
     replace(replace(replace(replace('${baseName}${baseUniqueName}', '-', ''), '_', ''), '.', ''), '/', ''),
@@ -104,6 +117,10 @@ module foundryAccount 'modules/account.bicep' = {
     tags: tags
     enableTelemetry: enableTelemetry
     lock: lock
+    pepCustoms: {
+      pepName: privateEndpointCustomNames.?accountPepName
+      networkInterfaceName: privateEndpointCustomNames.?accountPepNetworkInterfaceName
+    }
   }
 }
 
@@ -123,6 +140,10 @@ module keyVault 'modules/keyVault.bicep' = if (includeAssociatedResources) {
     privateEndpointSubnetResourceId: privateEndpointSubnetResourceId
     privateDnsZoneResourceId: keyVaultConfiguration.?privateDnsZoneResourceId
     roleAssignments: keyVaultConfiguration.?roleAssignments
+    pepCustoms: {
+      pepName: privateEndpointCustomNames.?keyVaultPepName
+      networkInterfaceName: privateEndpointCustomNames.?keyVaultNetworkInterfaceName
+    }
   }
 }
 
@@ -140,6 +161,10 @@ module aiSearch 'modules/aiSearch.bicep' = if (includeAssociatedResources) {
     sku: aiSearchConfiguration.?sku ?? 'standard'
     replicaCount: aiSearchConfiguration.?replicaCount ?? 3
     partitionCount: aiSearchConfiguration.?partitionCount ?? 1
+    pepCustoms: {
+      pepName: privateEndpointCustomNames.?aiSearchPepName
+      networkInterfaceName: privateEndpointCustomNames.?aiSearchNetworkInterfaceName
+    }
   }
 }
 
@@ -179,6 +204,10 @@ module storageAccount 'modules/storageAccount.bicep' = if (includeAssociatedReso
           ]
         : []
     )
+    pepCustoms: {
+      pepName: privateEndpointCustomNames.?aiSearchPepName
+      networkInterfaceName: privateEndpointCustomNames.?aiSearchNetworkInterfaceName
+    }
   }
 }
 
@@ -195,6 +224,10 @@ module cosmosDb 'modules/cosmosDb.bicep' = if (includeAssociatedResources) {
     roleAssignments: cosmosDbConfiguration.?roleAssignments
     enableZoneRedundancy: cosmosDbConfiguration.?enableZoneRedundancy ?? false
     enableServerless: cosmosDbConfiguration.?enableServerless ?? false
+    pepCustoms: {
+      pepName: privateEndpointCustomNames.?cosmosDbPepName
+      networkInterfaceName: privateEndpointCustomNames.?cosmosDbNetworkInterfaceName
+    }
   }
 }
 

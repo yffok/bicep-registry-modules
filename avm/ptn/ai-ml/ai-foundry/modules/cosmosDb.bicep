@@ -30,6 +30,10 @@ param enableServerless bool = false
 @description('Optional. Specifies the resource tags for all the resources.')
 param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
+import { privateEndpointCustomNames } from 'utl.bicep'
+@description('Optional. The custom name of the network interface attached to the private endpoint.')
+param pepCustoms privateEndpointCustomNames = {}
+
 import { getResourceParts, getResourceName, getSubscriptionId, getResourceGroupName } from 'parseResourceIdFunctions.bicep'
 
 var existingResourceParts = getResourceParts(existingResourceId)
@@ -64,6 +68,8 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.19.0' = if (em
     privateEndpoints: privateNetworkingEnabled
       ? [
           {
+            customNetworkInterfaceName: pepCustoms.?networkInterfaceName
+            name: pepCustoms.?pepName
             privateDnsZoneGroup: {
               privateDnsZoneGroupConfigs: [
                 {

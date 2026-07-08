@@ -24,6 +24,10 @@ param enableTelemetry bool = true
 @description('Optional. Specifies the resource tags for all the resources.')
 param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
+import { privateEndpointCustomNames } from 'utl.bicep'
+@description('Optional. The custom name of the network interface attached to the private endpoint.')
+param pepCustoms privateEndpointCustomNames = {}
+
 import { getResourceParts, getResourceName, getSubscriptionId, getResourceGroupName } from 'parseResourceIdFunctions.bicep'
 
 var existingResourceParts = getResourceParts(existingResourceId)
@@ -65,6 +69,8 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.32.0' = if (e
     privateEndpoints: privateNetworkingEnabled
       ? [
           {
+            name: pepCustoms.?pepName
+            customNetworkInterfaceName: pepCustoms.?networkInterfaceName
             privateDnsZoneGroup: {
               privateDnsZoneGroupConfigs: [
                 {
