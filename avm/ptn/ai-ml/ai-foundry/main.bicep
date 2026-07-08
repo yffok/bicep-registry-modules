@@ -287,6 +287,7 @@ output cosmosAccountName string = includeAssociatedResources ? cosmosDb!.outputs
 
 import { roleAssignmentType } from 'br/public:avm/utl/types/avm-common-types:0.6.1'
 
+@export()
 import { privateEndpointCustomNames } from './modules/utl.bicep'
 
 @export()
