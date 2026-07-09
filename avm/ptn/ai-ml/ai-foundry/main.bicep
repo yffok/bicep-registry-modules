@@ -195,6 +195,7 @@ module storageAccount 'modules/storageAccount.bicep' = if (includeAssociatedReso
       pepName: storageAccountConfiguration.?privateEndpointCustomNames.?pepName
       networkInterfaceName: storageAccountConfiguration.?privateEndpointCustomNames.?networkInterfaceName
     }
+    storageAccountAllowedCopyScope: storageAccountConfiguration.?storageAccountAllowedCopyScope
   }
 }
 
@@ -326,6 +327,9 @@ type storageAccountConfigurationType = {
 
   @description('Optional. Custom names for the private endpoints and network interfaces associated with the Storage Account.')
   privateEndpointCustomNames: privateEndpointCustomNames?
+
+  @description('Optional. Storage account allowed copy scope property. This is used to control the allowed copy scope for the storage account.')
+  storageAccountAllowedCopyScope: string?
 }
 
 @export()

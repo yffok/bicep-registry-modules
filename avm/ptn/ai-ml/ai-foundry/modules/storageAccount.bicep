@@ -28,6 +28,9 @@ import { privateEndpointCustomNames } from 'utl.bicep'
 @description('Optional. The custom name of the network interface attached to the private endpoint.')
 param pepCustoms privateEndpointCustomNames = {}
 
+@sys.description('The allowed copy scope property for the storage account')
+param storageAccountAllowedCopyScope string = ''
+
 import { getResourceParts, getResourceName, getSubscriptionId, getResourceGroupName } from 'parseResourceIdFunctions.bicep'
 
 var existingResourceParts = getResourceParts(existingResourceId)
@@ -54,6 +57,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.32.0' = if (e
     allowBlobPublicAccess: !privateNetworkingEnabled
     allowSharedKeyAccess: false
     allowCrossTenantReplication: false
+    allowedCopyScope: storageAccountAllowedCopyScope
     blobServices: {
       deleteRetentionPolicyEnabled: true
       deleteRetentionPolicyDays: 7
